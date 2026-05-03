@@ -1,0 +1,6 @@
+{
+  "name": "finflow-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "description": "FinFlow client — scaffold until UI stack is chosen."
+}
