@@ -24,10 +24,12 @@ Point the client at your API base URL (e.g. `http://localhost:8000/api/v1`) and 
 
 ## Related repositories
 
-- **FinFlow — Backend** — FastAPI service and database migrations.  
-- **FinFlow — Main Repo** — clones both apps via submodules for a single-folder workflow.
+| Repo | URL |
+|------|-----|
+| **FinFlow — Main Repo** | https://github.com/ChamathDilshanC/FinFlow---Main-Repo |
+| **FinFlow — Backend** | https://github.com/ChamathDilshanC/FinFlow---Backend |
 
-Repository URLs appear on your GitHub account after the repos are created.
+Clone everything: `git clone --recurse-submodules https://github.com/ChamathDilshanC/FinFlow---Main-Repo.git`
 
 ## Contributing & attribution
 
