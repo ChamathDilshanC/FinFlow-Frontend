@@ -1,13 +1,35 @@
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 
 import { OnboardingRadialBackdrop } from "../components/OnboardingRadialBackdrop";
+import type { RootStackParamList } from "../navigation/types";
 
 const LOGO = require("../../assets/application/logo.png");
 
-type ThemeKey = "violet" | "rose";
+type ThemeKey = "violet" | "rose" | "blue";
+
+const ACCENT = {
+  violet: {
+    dot: "mr-2 h-1 w-8 rounded-full bg-violet-400",
+    button: "mt-10 w-full items-center justify-center rounded-full bg-violet-600 py-4 active:bg-violet-700",
+    login: "text-base font-semibold text-violet-300",
+  },
+  rose: {
+    dot: "mr-2 h-1 w-8 rounded-full bg-rose-400",
+    button: "mt-10 w-full items-center justify-center rounded-full bg-rose-600 py-4 active:bg-rose-700",
+    login: "text-base font-semibold text-rose-300",
+  },
+  blue: {
+    dot: "mr-2 h-1 w-8 rounded-full bg-[#008BFF]",
+    button:
+      "mt-10 w-full items-center justify-center rounded-full bg-[#008BFF] py-4 active:bg-[#0078E6]",
+    login: "text-base font-semibold text-[#5CB3FF]",
+  },
+} as const;
 
 type Slide = {
   theme: ThemeKey;
@@ -27,25 +49,25 @@ const SLIDES: Slide[] = [
     body: "Log expenses by category, filter by date, and keep transactions aligned with budgets and your default currency.",
   },
   {
-    theme: "violet",
+    theme: "blue",
     headline: "Dashboard & peace",
     body: "See totals, remaining budget, category splits, payment history, and notification preferences in one calm view.",
   },
 ];
 
-type WelcomeScreenProps = {
-  onContinue: () => void;
-  onLogin?: () => void;
-};
+type Nav = NativeStackNavigationProp<RootStackParamList, "Welcome">;
 
-export function WelcomeScreen({ onContinue, onLogin }: WelcomeScreenProps) {
+export function WelcomeScreen() {
+  const navigation = useNavigation<Nav>();
   const [index, setIndex] = useState(0);
   const slide = SLIDES[index];
   const isLast = index === SLIDES.length - 1;
 
+  const goToAuth = () => navigation.navigate("Login");
+
   const goNext = () => {
     if (isLast) {
-      onContinue();
+      goToAuth();
     } else {
       setIndex((i) => Math.min(i + 1, SLIDES.length - 1));
     }
@@ -82,11 +104,7 @@ export function WelcomeScreen({ onContinue, onLogin }: WelcomeScreenProps) {
                 <View
                   key={i}
                   className={
-                    i === index
-                      ? slide.theme === "rose"
-                        ? "mr-2 h-1 w-8 rounded-full bg-rose-400"
-                        : "mr-2 h-1 w-8 rounded-full bg-violet-400"
-                      : "mr-2 h-1 w-6 rounded-full bg-slate-600"
+                    i === index ? ACCENT[SLIDES[i].theme].dot : "mr-2 h-1 w-6 rounded-full bg-slate-600"
                   }
                 />
               ))}
@@ -96,30 +114,16 @@ export function WelcomeScreen({ onContinue, onLogin }: WelcomeScreenProps) {
               accessibilityRole="button"
               accessibilityLabel={isLast ? "Get started" : "Next slide"}
               onPress={goNext}
-              className={
-                slide.theme === "rose"
-                  ? "mt-10 w-full items-center justify-center rounded-full bg-rose-600 py-4 active:bg-rose-700"
-                  : "mt-10 w-full items-center justify-center rounded-full bg-violet-600 py-4 active:bg-violet-700"
-              }
+              className={ACCENT[slide.theme].button}
             >
               <Text className="text-center text-[17px] font-semibold text-white">
                 {isLast ? "Get started" : "Next"}
               </Text>
             </Pressable>
 
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => onLogin?.()}
-              className="mt-5 w-full flex-row flex-wrap items-center justify-center py-2"
-            >
+            <Pressable accessibilityRole="button" onPress={goToAuth} className="mt-5 w-full flex-row flex-wrap items-center justify-center py-2">
               <Text className="text-base text-slate-400">Already have an account? </Text>
-              <Text
-                className={
-                  slide.theme === "rose"
-                    ? "text-base font-semibold text-rose-300"
-                    : "text-base font-semibold text-violet-300"
-                }
-              >
+              <Text className={ACCENT[slide.theme].login}>
                 Log in
               </Text>
             </Pressable>

@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
-export type RadialTheme = "violet" | "rose";
+export type RadialTheme = "violet" | "rose" | "blue";
 
 /** Top-centered radial glow on #000 — tall ellipse so tint reaches further down the screen */
 const THEME = {
   violet: { center: "#8b5cf6", opacity: 0.28 },
   rose: { center: "#fb7185", opacity: 0.28 },
+  blue: { center: "#008BFF", opacity: 0.28 },
 } as const;
 
 type Props = {
