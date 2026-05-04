@@ -1,6 +1,34 @@
 {
-  "name": "finflow-frontend",
-  "private": true,
-  "version": "0.0.0",
-  "description": "FinFlow client — scaffold until UI stack is chosen."
+  "name": "finflow-mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start --lan",
+    "start:lan": "expo start --lan",
+    "start:default": "expo start",
+    "start:tunnel": "expo start --tunnel",
+    "start:tunnel:clear": "expo start --tunnel --clear",
+    "android": "expo start --lan --android",
+    "ios": "expo start --lan --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~54.0.33",
+    "expo-status-bar": "~3.0.9",
+    "nativewind": "^4.2.3",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-reanimated": "~4.1.1",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-svg": "15.12.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.0",
+    "babel-preset-expo": "~54.0.10",
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.2"
+  },
+  "private": true
 }

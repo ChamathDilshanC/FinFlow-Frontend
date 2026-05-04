@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "FinFlow",
+    "slug": "finflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/application/logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/application/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/application/logo.png",
+        "backgroundColor": "#000000"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/application/logo.png"
+    }
+  }
+}
