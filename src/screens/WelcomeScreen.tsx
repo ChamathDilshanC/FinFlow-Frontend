@@ -18,7 +18,7 @@ type Slide = {
 const SLIDES: Slide[] = [
   {
     theme: "violet",
-    headline: "Subscriptions at a glance",
+    headline: "Subscriptions",
     body: "Track renewals, billing cycles, monthly equivalents, and soft limits — all synced with your FinFlow backend.",
   },
   {
