@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { GlassPanel } from "../components/GlassPanel";
 import { OnboardingRadialBackdrop } from "../components/OnboardingRadialBackdrop";
 import type { RootStackParamList } from "../navigation/types";
 
@@ -84,13 +83,6 @@ export function WelcomeScreen() {
 
       <SafeAreaView className="z-10 flex-1 px-8" edges={["top", "bottom"]}>
         <View className="flex-1 justify-end pb-5">
-          <GlassPanel
-            tint="dark"
-            intensity={42}
-            borderRadius={28}
-            style={{ width: "100%" }}
-            contentStyle={styles.welcomeGlass}
-          >
           <View className="w-full items-start">
             <View className="mb-10 flex-row items-center">
               <Image
@@ -136,7 +128,6 @@ export function WelcomeScreen() {
               </Text>
             </Pressable>
           </View>
-          </GlassPanel>
         </View>
       </SafeAreaView>
     </View>
@@ -147,10 +138,5 @@ const styles = StyleSheet.create({
   logo: {
     width: 48,
     height: 48,
-  },
-  welcomeGlass: {
-    paddingHorizontal: 4,
-    paddingVertical: 22,
-    paddingBottom: 12,
   },
 });

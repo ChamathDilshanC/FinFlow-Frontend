@@ -1,4 +1,4 @@
-import { apiJson } from "./http";
+import { apiJson, apiMutateJson } from "./http";
 
 export type UserProfile = {
   id: string;
@@ -11,4 +11,13 @@ export type UserProfile = {
 
 export function getProfile(accessToken: string): Promise<UserProfile> {
   return apiJson<UserProfile>("/auth/me", accessToken);
+}
+
+export type UserProfilePatch = {
+  monthly_budget?: string | null;
+  default_currency?: string | null;
+};
+
+export function patchProfile(accessToken: string, body: UserProfilePatch): Promise<UserProfile> {
+  return apiMutateJson<UserProfile>("/auth/me", accessToken, "PATCH", body);
 }

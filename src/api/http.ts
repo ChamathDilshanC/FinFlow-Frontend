@@ -39,3 +39,21 @@ export async function apiJson<T>(path: string, accessToken: string, init?: Reque
   }
   return data as T;
 }
+
+/** POST / PUT / PATCH / DELETE with optional JSON body (Content-Type set when body is sent). */
+export async function apiMutateJson<T>(
+  path: string,
+  accessToken: string,
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  body?: unknown,
+): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(body !== undefined && method !== "DELETE" ? { "Content-Type": "application/json" } : {}),
+  };
+  return apiJson<T>(path, accessToken, {
+    method,
+    headers,
+    ...(body !== undefined && method !== "DELETE" ? { body: JSON.stringify(body) } : {}),
+  });
+}

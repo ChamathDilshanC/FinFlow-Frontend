@@ -18,7 +18,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApiError } from "../../api/types";
 import { useSession } from "../../auth/SessionContext";
-import { GlassPanel } from "../../components/GlassPanel";
 import { GoogleLogo } from "../../components/GoogleLogo";
 import { OnboardingRadialBackdrop } from "../../components/OnboardingRadialBackdrop";
 import type { RootStackParamList } from "../../navigation/types";
@@ -93,13 +92,12 @@ export function RegisterScreen() {
               <Text className="text-base text-violet-300">← Back</Text>
             </Pressable>
 
-            <GlassPanel tint="dark" intensity={48} borderRadius={22} style={{ marginTop: 12 }} contentStyle={styles.glassAuthCard}>
-            <Text className="text-3xl font-bold text-white">Create account</Text>
+            <Text className="mt-6 text-3xl font-bold text-white">Create account</Text>
             <Text className="mt-2 text-base leading-6 text-slate-300">Set up your FinFlow account in a few seconds.</Text>
 
             <Text className="mb-2 mt-8 text-sm font-medium text-slate-400">Email</Text>
             <TextInput
-              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white"
+              className="rounded-xl border border-slate-700 bg-black/40 px-4 py-3 text-base text-white"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -111,7 +109,7 @@ export function RegisterScreen() {
 
             <Text className="mb-2 mt-4 text-sm font-medium text-slate-400">Password</Text>
             <TextInput
-              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white"
+              className="rounded-xl border border-slate-700 bg-black/40 px-4 py-3 text-base text-white"
               secureTextEntry
               placeholder="Min 6 characters"
               placeholderTextColor="#64748b"
@@ -121,7 +119,7 @@ export function RegisterScreen() {
 
             <Text className="mb-2 mt-4 text-sm font-medium text-slate-400">Confirm password</Text>
             <TextInput
-              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white"
+              className="rounded-xl border border-slate-700 bg-black/40 px-4 py-3 text-base text-white"
               secureTextEntry
               placeholder="Repeat password"
               placeholderTextColor="#64748b"
@@ -146,7 +144,7 @@ export function RegisterScreen() {
               accessibilityRole="button"
               disabled={busy}
               onPress={onGoogle}
-              className="mt-4 flex-row items-center justify-center rounded-full border border-white/25 bg-white/10 py-4 active:bg-white/15 disabled:opacity-50"
+              className="mt-4 flex-row items-center justify-center rounded-full border border-slate-600 bg-black/30 py-4 active:bg-black/50 disabled:opacity-50"
             >
               {busy ? (
                 <ActivityIndicator color="#fff" />
@@ -169,7 +167,6 @@ export function RegisterScreen() {
                 Already have an account? <Text className="font-semibold text-violet-300">Log in</Text>
               </Text>
             </Pressable>
-            </GlassPanel>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -189,8 +186,5 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     paddingVertical: 8,
     paddingRight: 16,
-  },
-  glassAuthCard: {
-    padding: 20,
   },
 });
