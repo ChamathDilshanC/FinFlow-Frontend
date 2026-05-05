@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import DateTimePicker, { DateTimePickerAndroid, type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import {
   ActivityIndicator,
   Alert,
@@ -180,8 +181,39 @@ function Field({
   );
 }
 
+function toDateSafe(value: string): Date {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return new Date();
+  // Guard against accidental epoch default values.
+  if (d.getFullYear() < 2000) return new Date();
+  return d;
+}
+
+function normalizePickedDate(value: Date): Date {
+  if (Number.isNaN(value.getTime()) || value.getFullYear() < 2000) return new Date();
+  return value;
+}
+
+function fmtDateLabel(value: string): string {
+  if (!value) return "Select date";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime())
+    ? value
+    : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function fmtDateTimeLabel(value: string): string {
+  if (!value) return "Select date & time";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
 export function HomeCrudModal({ open, onClose, accessToken, categories, subscriptions: subRows, defaultCurrency, onSaved }: Props) {
   const [busy, setBusy] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState<
+    null | "subStart" | "subNext" | "txOccurred" | "payPaidAt" | "payPeriodStart" | "payPeriodEnd" | "budMonth" | "exDate"
+  >(null);
+  const [iosTempDate, setIosTempDate] = useState<Date>(new Date());
 
   const dc = defaultCurrency && defaultCurrency.length === 3 ? defaultCurrency : "USD";
 
@@ -388,10 +420,91 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
       return !k || k === "subscription" || k === "both";
     });
     const list = forSubs.length > 0 ? forSubs : categories;
-    return list.map((c) => ({ id: strField(c.id), name: strField(c.name) || strField(c.id) }));
+    return list
+      .map((c) => ({ id: strField(c.id), name: strField(c.name) }))
+      .filter((c) => c.id && c.name);
   }, [categories]);
 
   const errMsg = (e: unknown) => (e instanceof ApiError ? e.message : e instanceof Error ? e.message : "Request failed");
+
+  const applyPickedDate = (
+    kind: "subStart" | "subNext" | "txOccurred" | "payPaidAt" | "payPeriodStart" | "payPeriodEnd" | "budMonth" | "exDate",
+    selectedDate: Date,
+  ) => {
+    const ymd = formatLocalYmd(selectedDate);
+    const iso = selectedDate.toISOString();
+    switch (kind) {
+      case "subStart":
+        setSubStart(ymd);
+        break;
+      case "subNext":
+        setSubNext(ymd);
+        break;
+      case "txOccurred":
+        setTxOccurred(iso);
+        break;
+      case "payPaidAt":
+        setPayPaidAt(iso);
+        break;
+      case "payPeriodStart":
+        setPayPeriodStart(ymd);
+        break;
+      case "payPeriodEnd":
+        setPayPeriodEnd(ymd);
+        break;
+      case "budMonth":
+        setBudMonth(ymd);
+        break;
+      case "exDate":
+        setExDate(ymd);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const onPickDate = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (event.type === "dismissed" || !selectedDate || !pickerOpen) {
+      setPickerOpen(null);
+      return;
+    }
+    applyPickedDate(pickerOpen, selectedDate);
+    setPickerOpen(null);
+  };
+
+  const openDatePicker = (
+    kind: "subStart" | "subNext" | "txOccurred" | "payPaidAt" | "payPeriodStart" | "payPeriodEnd" | "budMonth" | "exDate",
+  ) => {
+    const current =
+      kind === "txOccurred"
+        ? txOccurred
+        : kind === "payPaidAt"
+          ? payPaidAt
+          : kind === "payPeriodStart"
+            ? payPeriodStart
+            : kind === "payPeriodEnd"
+              ? payPeriodEnd
+              : kind === "budMonth"
+                ? budMonth
+                : kind === "exDate"
+                  ? exDate
+                  : kind === "subNext"
+                    ? subNext
+                    : subStart;
+    if (Platform.OS === "android") {
+      DateTimePickerAndroid.open({
+        value: toDateSafe(current),
+        mode: "date",
+        onChange: (event, selectedDate) => {
+          setPickerOpen(kind);
+          onPickDate(event, selectedDate);
+        },
+      });
+      return;
+    }
+    setIosTempDate(toDateSafe(current));
+    setPickerOpen(kind);
+  };
 
   const save = async () => {
     if (!open) return;
@@ -616,11 +729,18 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
                   />
                 </View>
                 <Field label="Monthly limit (optional)" value={subLimit} onChangeText={setSubLimit} keyboardType="decimal-pad" />
-                <Field label="Start date (YYYY-MM-DD)" value={subStart} onChangeText={setSubStart} />
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Start date</Text>
+                  <Pressable onPress={() => openDatePicker("subStart")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(subStart)}</Text>
+                  </Pressable>
+                </View>
                 <View style={s.fieldBlock}>
                   <Text style={s.label}>Next renewal</Text>
                   <Text style={s.hint}>Filled from billing cycle + start date; you can edit if needed.</Text>
-                  <Field label="Date (YYYY-MM-DD)" value={subNext} onChangeText={setSubNext} placeholder="Auto" />
+                  <Pressable onPress={() => openDatePicker("subNext")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(subNext)}</Text>
+                  </Pressable>
                 </View>
                 <View style={s.fieldBlock}>
                   <Text style={s.label}>Active</Text>
@@ -706,14 +826,14 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
               <>
                 <View style={s.fieldBlock}>
                   <Text style={s.label}>Category (optional)</Text>
-                  <Text style={s.hint}>Pick from your categories or paste a UUID.</Text>
+                  <Text style={s.hint}>Pick from your categories.</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.catPickScroll}>
                     <Pressable onPress={() => setTxCatId("")} style={[s.catPick, txCatId === "" && s.catPickOn]}>
                       <Text style={[s.catPickText, txCatId === "" && s.catPickTextOn]}>None</Text>
                     </Pressable>
                     {categories.map((c) => {
                       const id = strField(c.id);
-                      const nm = strField(c.name) || id.slice(0, 8);
+                      const nm = strField(c.name) || "Unnamed category";
                       const sel = txCatId === id;
                       return (
                         <Pressable key={id} onPress={() => setTxCatId(id)} style={[s.catPick, sel && s.catPickOn]}>
@@ -724,17 +844,15 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
                       );
                     })}
                   </ScrollView>
-                  <Field
-                    label="Or paste category UUID"
-                    value={txCatId}
-                    onChangeText={setTxCatId}
-                    placeholder="UUID"
-                    autoCapitalize="none"
-                  />
                 </View>
                 <Field label="Amount" value={txAmount} onChangeText={setTxAmount} keyboardType="decimal-pad" />
                 <Field label="Currency" value={txCurrency} onChangeText={setTxCurrency} autoCapitalize="characters" />
-                <Field label="Occurred at (ISO datetime)" value={txOccurred} onChangeText={setTxOccurred} autoCapitalize="none" />
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Occurred at</Text>
+                  <Pressable onPress={() => openDatePicker("txOccurred")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateTimeLabel(txOccurred)}</Text>
+                  </Pressable>
+                </View>
                 <Field label="Merchant" value={txMerchant} onChangeText={setTxMerchant} />
                 <Field label="Notes" value={txNotes} onChangeText={setTxNotes} multiline />
               </>
@@ -743,14 +861,14 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
               <>
                 <View style={s.fieldBlock}>
                   <Text style={s.label}>Subscription (optional)</Text>
-                  <Text style={s.hint}>Pick a subscription or paste its UUID.</Text>
+                  <Text style={s.hint}>Pick a subscription.</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.catPickScroll}>
                     <Pressable onPress={() => setPaySubId("")} style={[s.catPick, paySubId === "" && s.catPickOn]}>
                       <Text style={[s.catPickText, paySubId === "" && s.catPickTextOn]}>None</Text>
                     </Pressable>
                     {subRows.map((su) => {
                       const id = strField(su.id);
-                      const nm = strField(su.name) || id.slice(0, 8);
+                      const nm = strField(su.name) || "Subscription";
                       const sel = paySubId === id;
                       return (
                         <Pressable key={id} onPress={() => setPaySubId(id)} style={[s.catPick, sel && s.catPickOn]}>
@@ -761,19 +879,27 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
                       );
                     })}
                   </ScrollView>
-                  <Field
-                    label="Or paste subscription UUID"
-                    value={paySubId}
-                    onChangeText={setPaySubId}
-                    placeholder="UUID"
-                    autoCapitalize="none"
-                  />
                 </View>
                 <Field label="Amount" value={payAmount} onChangeText={setPayAmount} keyboardType="decimal-pad" />
                 <Field label="Currency" value={payCurrency} onChangeText={setPayCurrency} autoCapitalize="characters" />
-                <Field label="Paid at (ISO datetime)" value={payPaidAt} onChangeText={setPayPaidAt} autoCapitalize="none" />
-                <Field label="Period start (YYYY-MM-DD, optional)" value={payPeriodStart} onChangeText={setPayPeriodStart} />
-                <Field label="Period end (YYYY-MM-DD, optional)" value={payPeriodEnd} onChangeText={setPayPeriodEnd} />
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Paid at</Text>
+                  <Pressable onPress={() => openDatePicker("payPaidAt")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateTimeLabel(payPaidAt)}</Text>
+                  </Pressable>
+                </View>
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Period start (optional)</Text>
+                  <Pressable onPress={() => openDatePicker("payPeriodStart")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(payPeriodStart)}</Text>
+                  </Pressable>
+                </View>
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Period end (optional)</Text>
+                  <Pressable onPress={() => openDatePicker("payPeriodEnd")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(payPeriodEnd)}</Text>
+                  </Pressable>
+                </View>
                 <ChipRow
                   label="Status"
                   value={payStatus}
@@ -806,7 +932,7 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.catPickScroll}>
                     {categories.map((c) => {
                       const id = strField(c.id);
-                      const nm = strField(c.name) || id;
+                      const nm = strField(c.name) || "Category";
                       const sel = budCatId === id;
                       return (
                         <Pressable key={id} onPress={() => setBudCatId(id)} style={[s.catPick, sel && s.catPickOn]}>
@@ -818,14 +944,24 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
                     })}
                   </ScrollView>
                 </View>
-                <Field label="Budget month (YYYY-MM-DD)" value={budMonth} onChangeText={setBudMonth} />
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Budget month</Text>
+                  <Pressable onPress={() => openDatePicker("budMonth")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(budMonth)}</Text>
+                  </Pressable>
+                </View>
                 <Field label="Limit amount" value={budLimit} onChangeText={setBudLimit} keyboardType="decimal-pad" />
                 <Field label="Currency" value={budCurrency} onChangeText={setBudCurrency} autoCapitalize="characters" />
               </>
             )}
             {open.resource === "exchange" && (
               <>
-                <Field label="Rate date (YYYY-MM-DD)" value={exDate} onChangeText={setExDate} />
+                <View style={s.fieldBlock}>
+                  <Text style={s.label}>Rate date</Text>
+                  <Pressable onPress={() => openDatePicker("exDate")} style={s.input} accessibilityRole="button">
+                    <Text style={s.dateText}>{fmtDateLabel(exDate)}</Text>
+                  </Pressable>
+                </View>
                 <Field label="Base currency" value={exBase} onChangeText={setExBase} autoCapitalize="characters" />
                 <Field label="Quote currency" value={exQuote} onChangeText={setExQuote} autoCapitalize="characters" />
                 <Field label="Rate" value={exRate} onChangeText={setExRate} keyboardType="decimal-pad" />
@@ -850,6 +986,74 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
             </Pressable>
           </View>
         </View>
+        {Platform.OS !== "ios" && pickerOpen ? (
+          <DateTimePicker
+            value={toDateSafe(
+              pickerOpen === "txOccurred"
+                ? txOccurred
+                : pickerOpen === "payPaidAt"
+                  ? payPaidAt
+                  : pickerOpen === "payPeriodStart"
+                    ? payPeriodStart
+                    : pickerOpen === "payPeriodEnd"
+                      ? payPeriodEnd
+                      : pickerOpen === "budMonth"
+                        ? budMonth
+                        : pickerOpen === "exDate"
+                          ? exDate
+                          : pickerOpen === "subNext"
+                            ? subNext
+                            : subStart,
+            )}
+            mode={
+              pickerOpen === "txOccurred" || pickerOpen === "payPaidAt"
+                ? Platform.OS === "ios"
+                  ? "datetime"
+                  : "date"
+                : "date"
+            }
+            display="default"
+            onChange={onPickDate}
+          />
+        ) : null}
+        {Platform.OS === "ios" && pickerOpen ? (
+          <Modal visible transparent animationType="fade" onRequestClose={() => setPickerOpen(null)}>
+            <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
+              <Pressable
+                style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(15,23,42,0.2)" }}
+                onPress={() => setPickerOpen(null)}
+              />
+              <View style={{ backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: "#e2e8f0", padding: 14 }}>
+                <Text style={{ fontSize: 16, fontWeight: "800", color: "#0f172a", marginBottom: 8 }}>Select date</Text>
+                <DateTimePicker
+                  value={iosTempDate}
+                  mode={pickerOpen === "txOccurred" || pickerOpen === "payPaidAt" ? "datetime" : "date"}
+                  display="spinner"
+                  themeVariant="light"
+                  textColor="#0f172a"
+                  onChange={(_, d) => {
+                    if (d) setIosTempDate(normalizePickedDate(d));
+                  }}
+                  minimumDate={new Date("2000-01-01T00:00:00")}
+                />
+                <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+                  <Pressable onPress={() => setPickerOpen(null)} style={{ paddingHorizontal: 12, paddingVertical: 8 }}>
+                    <Text style={{ fontWeight: "700", color: "#64748b" }}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (pickerOpen) applyPickedDate(pickerOpen, iosTempDate);
+                      setPickerOpen(null);
+                    }}
+                    style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: "rgba(91,33,182,0.1)" }}
+                  >
+                    <Text style={{ fontWeight: "800", color: "#5b21b6" }}>Done</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        ) : null}
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -857,7 +1061,7 @@ export function HomeCrudModal({ open, onClose, accessToken, categories, subscrip
 
 const s = StyleSheet.create({
   overlay: { flex: 1, justifyContent: "flex-end" },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(148, 163, 184, 0.35)" },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: "transparent" },
   sheet: {
     maxHeight: "88%",
     backgroundColor: "#fafbfc",
@@ -870,9 +1074,9 @@ const s = StyleSheet.create({
     borderColor: "rgba(226, 232, 240, 0.9)",
     shadowColor: "#0f172a",
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 24,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   sheetHandle: {
     width: 40,
@@ -903,6 +1107,11 @@ const s = StyleSheet.create({
     color: TEXT,
     minHeight: 48,
     backgroundColor: "#fff",
+  },
+  dateText: {
+    fontSize: 16,
+    color: TEXT,
+    fontWeight: "600",
   },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {

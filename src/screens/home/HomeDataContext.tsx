@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import type { HomeCrudOpen } from "./HomeCrudModal";
-import type { HomeDashboardState } from "./types";
+import type { HomeDashboardState, HomeDateRange } from "./types";
 
 export type HomeDataContextValue = {
   state: HomeDashboardState;
@@ -11,6 +11,9 @@ export type HomeDataContextValue = {
   currency: string | null;
   accountAvatar: string;
   displayName: string;
+  dateRange: HomeDateRange;
+  setDateRange: (range: HomeDateRange) => void;
+  resetDateRange: () => void;
   setCrudOpen: (open: HomeCrudOpen | null) => void;
 };
 

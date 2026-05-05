@@ -1,14 +1,31 @@
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { GlassPanel } from "../../../components/GlassPanel";
 import { fmtShortDate, strField } from "../../../lib/recordFields";
 import { ScreenHeader } from "../components/ScreenHeader";
+import { RecordDetailsModal } from "../components/RecordDetailsModal";
 import { homeStyles as styles } from "../homeStyles";
 import { useHomeData } from "../HomeDataContext";
 import { formatMoney, parseAmount } from "../utils";
 
 export function SubscriptionsScreen() {
   const { state, setCrudOpen, currency } = useHomeData();
+  const [viewRow, setViewRow] = useState<Record<string, unknown> | null>(null);
+  const viewFields = useMemo(
+    () =>
+      !viewRow
+        ? []
+        : [
+            { label: "Name", value: strField(viewRow.name) || "Subscription" },
+            { label: "Amount", value: strField(viewRow.amount) },
+            { label: "Currency", value: strField(viewRow.currency) || currency || "USD" },
+            { label: "Billing cycle", value: strField(viewRow.billing_cycle) || "-" },
+            { label: "Category", value: strField(viewRow.category) || "-" },
+            { label: "Next renewal", value: fmtShortDate(viewRow.next_renewal_date) },
+            { label: "Status", value: viewRow.is_active === true ? "Active" : "Inactive" },
+          ],
+    [currency, viewRow],
+  );
 
   return (
     <>
@@ -20,7 +37,7 @@ export function SubscriptionsScreen() {
       >
         <Text style={styles.crudToolbarText}>+ Add subscription</Text>
       </Pressable>
-      <GlassPanel intensity={44} tint="light" borderRadius={18} contentStyle={styles.listCardInner}>
+      <View style={styles.txListWrap}>
         {state.subscriptions.length === 0 ? (
           <Text style={styles.emptyText}>No subscriptions yet.</Text>
         ) : (
@@ -41,27 +58,37 @@ export function SubscriptionsScreen() {
                     {name}
                   </Text>
                   <View style={styles.dataRowTopRight}>
-                    <Text style={[styles.dataBadge, active ? styles.dataBadgeOn : styles.dataBadgeOff]}>
-                      {active ? "Active" : "Inactive"}
-                    </Text>
-                    <Pressable onPress={() => setCrudOpen({ resource: "subscription", mode: "edit", row })} hitSlop={8}>
-                      <Text style={styles.linkBtn}>Edit</Text>
+                    <Pressable onPress={() => setViewRow(row)} style={styles.viewBtn} accessibilityRole="button">
+                      <Text style={styles.viewBtnText}>View</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setCrudOpen({ resource: "subscription", mode: "edit", row })} hitSlop={8} style={styles.iconBtn}>
+                      <Text style={styles.iconBtnText}>✎</Text>
                     </Pressable>
                   </View>
                 </View>
-                <Text style={styles.dataRowMeta}>
-                  {!Number.isNaN(amt) ? formatMoney(amt, ccy) : strField(row.amount)} · {cycle || "—"}
-                  {!Number.isNaN(me) ? ` · ${formatMoney(me, ccy)}/mo eq.` : ""}
-                </Text>
-                <Text style={styles.dataRowFine}>
-                  Next renewal: {next}
-                  {cat ? ` · ${cat}` : ""}
-                </Text>
+                <View style={styles.txDivider} />
+                <View style={styles.txBottomRow}>
+                  <View style={styles.txMetaCol}>
+                    <Text style={[styles.dataBadge, active ? styles.dataBadgeOn : styles.dataBadgeOff]}>
+                      {active ? "Active" : "Inactive"}
+                    </Text>
+                    <Text style={styles.dataRowMeta}>
+                      {cycle || "—"}
+                      {!Number.isNaN(me) ? ` · ${formatMoney(me, ccy)}/mo eq.` : ""}
+                    </Text>
+                    <Text style={styles.dataRowFine}>
+                      Next renewal: {next}
+                      {cat ? ` · ${cat}` : ""}
+                    </Text>
+                  </View>
+                  <Text style={styles.dataRowAmount}>{!Number.isNaN(amt) ? formatMoney(amt, ccy) : strField(row.amount)}</Text>
+                </View>
               </View>
             );
           })
         )}
-      </GlassPanel>
+      </View>
+      <RecordDetailsModal visible={!!viewRow} title="Subscription details" fields={viewFields} onClose={() => setViewRow(null)} />
     </>
   );
 }

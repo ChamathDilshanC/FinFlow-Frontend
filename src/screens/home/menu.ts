@@ -10,4 +10,5 @@ export const HOME_MENU_ITEMS: Array<{ key: MenuKey; title: string; subtitle: str
   { key: "exchange", title: "Exchange rates", subtitle: "Currency conversion cache" },
   { key: "notifications", title: "Notifications", subtitle: "Renewal reminder settings" },
   { key: "profile", title: "Profile", subtitle: "Account email and defaults" },
+  { key: "settings", title: "Settings", subtitle: "Date range and dashboard filters" },
 ];

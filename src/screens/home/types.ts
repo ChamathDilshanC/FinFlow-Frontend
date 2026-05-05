@@ -11,7 +11,13 @@ export type MenuKey =
   | "budgets"
   | "exchange"
   | "notifications"
-  | "profile";
+  | "profile"
+  | "settings";
+
+export type HomeDateRange = {
+  fromDate: string;
+  toDate: string;
+};
 
 export type HomeDashboardState = {
   profile: UserProfile;

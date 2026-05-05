@@ -1,13 +1,27 @@
+import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { GlassPanel } from "../../../components/GlassPanel";
 import { strField } from "../../../lib/recordFields";
 import { ScreenHeader } from "../components/ScreenHeader";
+import { RecordDetailsModal } from "../components/RecordDetailsModal";
 import { homeStyles as styles } from "../homeStyles";
 import { useHomeData } from "../HomeDataContext";
 
 export function CategoriesScreen() {
   const { state, setCrudOpen } = useHomeData();
+  const [viewRow, setViewRow] = useState<Record<string, unknown> | null>(null);
+  const viewFields = useMemo(
+    () =>
+      !viewRow
+        ? []
+        : [
+            { label: "Name", value: strField(viewRow.name) || "Category" },
+            { label: "Kind", value: strField(viewRow.kind) || "both" },
+            { label: "Color", value: strField(viewRow.color) || "-" },
+            { label: "Icon", value: strField(viewRow.icon) || "-" },
+          ],
+    [viewRow],
+  );
 
   return (
     <>
@@ -15,7 +29,7 @@ export function CategoriesScreen() {
       <Pressable onPress={() => setCrudOpen({ resource: "category", mode: "create" })} style={styles.crudToolbar} accessibilityRole="button">
         <Text style={styles.crudToolbarText}>+ Add category</Text>
       </Pressable>
-      <GlassPanel intensity={44} tint="light" borderRadius={18} contentStyle={styles.listCardInner}>
+      <View style={styles.txListWrap}>
         {state.categories.length === 0 ? (
           <Text style={styles.emptyText}>No categories yet.</Text>
         ) : (
@@ -28,19 +42,30 @@ export function CategoriesScreen() {
                 <View style={styles.dataRowTop}>
                   <Text style={styles.dataRowTitle}>{strField(row.name) || "Category"}</Text>
                   <View style={styles.dataRowTopRight}>
-                    <View style={[styles.colorSwatch, { backgroundColor: safeColor }]} />
-                    <Pressable onPress={() => setCrudOpen({ resource: "category", mode: "edit", row })} hitSlop={8}>
-                      <Text style={styles.linkBtn}>Edit</Text>
+                    <Pressable onPress={() => setViewRow(row)} style={styles.viewBtn} accessibilityRole="button">
+                      <Text style={styles.viewBtnText}>View</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setCrudOpen({ resource: "category", mode: "edit", row })} hitSlop={8} style={styles.iconBtn}>
+                      <Text style={styles.iconBtnText}>✎</Text>
                     </Pressable>
                   </View>
                 </View>
-                <Text style={styles.dataRowMeta}>{strField(row.kind) || "both"}</Text>
-                {strField(row.icon) ? <Text style={styles.dataRowFine}>Icon: {strField(row.icon)}</Text> : null}
+                <View style={styles.txDivider} />
+                <View style={styles.txBottomRow}>
+                  <View style={styles.txMetaCol}>
+                    <View style={styles.txCategoryBadge}>
+                      <Text style={styles.txCategoryBadgeText}>{strField(row.kind) || "both"}</Text>
+                    </View>
+                    {strField(row.icon) ? <Text style={styles.dataRowFine}>Icon: {strField(row.icon)}</Text> : null}
+                  </View>
+                  <View style={[styles.colorSwatch, { backgroundColor: safeColor }]} />
+                </View>
               </View>
             );
           })
         )}
-      </GlassPanel>
+      </View>
+      <RecordDetailsModal visible={!!viewRow} title="Category details" fields={viewFields} onClose={() => setViewRow(null)} />
     </>
   );
 }

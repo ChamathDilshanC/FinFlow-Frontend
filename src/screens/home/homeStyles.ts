@@ -86,15 +86,28 @@ export const homeStyles = StyleSheet.create({
     fontWeight: "700",
   },
   greeting: {
-    fontSize: 26,
-    fontWeight: "800",
+    marginTop: 2,
+    fontSize: 22,
+    fontWeight: "700",
     color: TEXT,
-    letterSpacing: -0.5,
+    letterSpacing: -0.2,
+  },
+  greetingKicker: {
+    marginTop: 18,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6366f1",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  greetingName: {
+    fontWeight: "800",
+    color: "#312e81",
   },
   subGreeting: {
-    marginTop: 8,
-    fontSize: 15,
-    lineHeight: 22,
+    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
     color: MUTED,
   },
   rowActions: {
@@ -121,6 +134,14 @@ export const homeStyles = StyleSheet.create({
   heroCardInner: {
     padding: 20,
   },
+  heroCarousel: {
+    marginBottom: 8,
+  },
+  heroCarouselContent: {
+    paddingHorizontal: 0,
+    gap: 0,
+  },
+  heroSlide: {},
   heroLabel: {
     color: "#c4b5fd",
     fontSize: 13,
@@ -153,9 +174,22 @@ export const homeStyles = StyleSheet.create({
     color: "#fde68a",
     marginTop: 4,
   },
+  heroMiniTrack: {
+    marginTop: 14,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    overflow: "hidden",
+  },
+  heroMiniFill: {
+    height: "100%",
+    borderRadius: 4,
+    backgroundColor: "#7dd3fc",
+  },
   heroDots: {
     flexDirection: "row",
-    marginTop: 18,
+    marginTop: 6,
+    marginBottom: 12,
     gap: 6,
   },
   dot: {
@@ -213,6 +247,64 @@ export const homeStyles = StyleSheet.create({
   listCardInner: {
     padding: 16,
   },
+  txListWrap: {
+    marginTop: 2,
+  },
+  trendCardInner: {
+    padding: 16,
+  },
+  trendHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 10,
+  },
+  trendLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#bfdbfe",
+  },
+  trendAmount: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#e0e7ff",
+  },
+  trendChartWrap: {
+    height: 100,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "rgba(15,23,42,0.28)",
+  },
+  trendEmptyWrap: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e2e8f0",
+  },
+  recentTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: TEXT,
+  },
+  recentMeta: {
+    marginTop: 3,
+    fontSize: 12,
+    color: MUTED,
+  },
+  recentAmount: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: PURPLE,
+  },
   pageScreenTitle: {
     marginTop: 4,
     fontSize: 24,
@@ -229,8 +321,12 @@ export const homeStyles = StyleSheet.create({
   },
   dataRow: {
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e2e8f0",
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "rgba(255,255,255,0.72)",
+    marginBottom: 10,
   },
   dataRowTop: {
     flexDirection: "row",
@@ -242,6 +338,19 @@ export const homeStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  iconBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(91,33,182,0.08)",
+  },
+  iconBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: PURPLE,
   },
   crudToolbar: {
     alignSelf: "flex-start",
@@ -260,6 +369,21 @@ export const homeStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: PURPLE,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 9,
+    backgroundColor: "rgba(91,33,182,0.08)",
+  },
+  viewBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 9,
+    backgroundColor: "rgba(37,99,235,0.10)",
+  },
+  viewBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#1d4ed8",
   },
   profileFieldLabel: {
     fontSize: 13,
@@ -301,13 +425,46 @@ export const homeStyles = StyleSheet.create({
     fontWeight: "800",
     color: PURPLE,
   },
+  txDivider: {
+    marginTop: 10,
+    marginBottom: 8,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#e2e8f0",
+  },
+  txBottomRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  txMetaCol: {
+    flex: 1,
+  },
+  txAmountRed: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#dc2626",
+  },
+  txCategoryBadge: {
+    marginTop: 6,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(139,92,246,0.14)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  txCategoryBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6d28d9",
+  },
   dataRowMeta: {
-    marginTop: 4,
+    marginTop: 6,
     fontSize: 13,
     color: MUTED,
   },
   dataRowFine: {
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 12,
     color: "#94a3b8",
   },
@@ -440,11 +597,9 @@ export const homeStyles = StyleSheet.create({
     borderTopRightRadius: MENU_DRAWER_RADIUS,
     borderBottomRightRadius: MENU_DRAWER_RADIUS,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 4, height: 0 },
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
-    elevation: 10,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   menuPanel: {
     flex: 1,
@@ -545,6 +700,6 @@ export const homeStyles = StyleSheet.create({
   },
   menuBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(2,6,23,0.45)",
+    backgroundColor: "transparent",
   },
 });

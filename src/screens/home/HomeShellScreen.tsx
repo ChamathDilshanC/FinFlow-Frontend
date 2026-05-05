@@ -44,9 +44,10 @@ import { ExchangeRatesScreen } from "./exchange/ExchangeRatesScreen";
 import { NotificationsScreen } from "./notifications/NotificationsScreen";
 import { PaymentsScreen } from "./payments/PaymentsScreen";
 import { ProfileScreen } from "./profile/ProfileScreen";
+import { SettingsScreen } from "./settings/SettingsScreen";
 import { SubscriptionsScreen } from "./subscriptions/SubscriptionsScreen";
 import { TransactionsScreen } from "./transactions/TransactionsScreen";
-import type { MenuKey } from "./types";
+import type { HomeDateRange, MenuKey } from "./types";
 import { avatarFromAccessToken, displayNameFromEmail } from "./utils";
 
 type Nav = NativeStackNavigationProp<RootStackParamList, "Home">;
@@ -58,6 +59,25 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   days_before_renewal: 7,
   timezone: "UTC",
 };
+
+function defaultRange30Days(): HomeDateRange {
+  const now = new Date();
+  const toDate = now.toISOString().slice(0, 10);
+  const from = new Date(now);
+  from.setDate(from.getDate() - 30);
+  const fromDate = from.toISOString().slice(0, 10);
+  return { fromDate, toDate };
+}
+
+function inRange(isoOrYmd: unknown, range: HomeDateRange): boolean {
+  const raw = typeof isoOrYmd === "string" ? isoOrYmd : "";
+  if (!raw) return false;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return false;
+  const from = new Date(`${range.fromDate}T00:00:00`);
+  const to = new Date(`${range.toDate}T23:59:59`);
+  return d >= from && d <= to;
+}
 
 type LoadState =
   | { status: "loading" }
@@ -84,6 +104,7 @@ export function HomeShellScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<MenuKey>("overview");
   const [crudOpen, setCrudOpen] = useState<HomeCrudOpen | null>(null);
+  const [dateRange, setDateRange] = useState<HomeDateRange>(() => defaultRange30Days());
 
   /** After first successful shell paint (profile + summary), full refresh loads all endpoints together. */
   const shellPrimedRef = useRef(false);
@@ -103,15 +124,6 @@ export function HomeShellScreen() {
 
     setState((s) => (s.status === "ready" ? s : { status: "loading" }));
 
-    const rangeDates = () => {
-      const now = new Date();
-      const toDate = now.toISOString().slice(0, 10);
-      const from = new Date(now);
-      from.setDate(from.getDate() - 30);
-      const fromDate = from.toISOString().slice(0, 10);
-      return { fromDate, toDate };
-    };
-
     try {
       if (!shellPrimedRef.current) {
         const [profile, summary] = await Promise.all([getProfile(accessToken), getDashboardSummary(accessToken)]);
@@ -130,7 +142,7 @@ export function HomeShellScreen() {
           preferences: DEFAULT_NOTIFICATION_PREFERENCES,
         });
 
-        const { fromDate, toDate } = rangeDates();
+        const { fromDate, toDate } = dateRange;
         try {
           const [subscriptions, categories, transactions, payments, budgets, exchangeRates, preferences] =
             await Promise.all([
@@ -165,7 +177,7 @@ export function HomeShellScreen() {
         return;
       }
 
-      const { fromDate, toDate } = rangeDates();
+      const { fromDate, toDate } = dateRange;
       const [profile, summary, subscriptions, categories, transactions, payments, budgets, exchangeRates, preferences] =
         await Promise.all([
           getProfile(accessToken),
@@ -197,7 +209,7 @@ export function HomeShellScreen() {
       const msg = e instanceof ApiError ? e.message : e instanceof Error ? e.message : "Could not load dashboard";
       setState({ status: "error", message: msg });
     }
-  }, [accessToken]);
+  }, [accessToken, dateRange]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -222,16 +234,20 @@ export function HomeShellScreen() {
     const { profile, summary } = state;
     const currency = summary.default_currency ?? profile.default_currency;
     const accountAvatar = avatarFromAccessToken(accessToken, profile.email);
+    const filteredTransactions = state.transactions.filter((r) => inRange(r.occurred_at, dateRange));
+    const filteredPayments = state.payments.filter((r) => inRange(r.paid_at, dateRange));
+    const filteredBudgets = state.budgets.filter((r) => inRange(r.budget_month, dateRange));
+    const filteredExchangeRates = state.exchangeRates.filter((r) => inRange(r.rate_date, dateRange));
     return {
       state: {
         profile: state.profile,
         summary: state.summary,
         subscriptions: state.subscriptions,
         categories: state.categories,
-        transactions: state.transactions,
-        payments: state.payments,
-        budgets: state.budgets,
-        exchangeRates: state.exchangeRates,
+        transactions: filteredTransactions,
+        payments: filteredPayments,
+        budgets: filteredBudgets,
+        exchangeRates: filteredExchangeRates,
         preferences: state.preferences,
       },
       accessToken,
@@ -239,9 +255,12 @@ export function HomeShellScreen() {
       currency,
       accountAvatar,
       displayName: displayNameFromEmail(profile.email),
+      dateRange,
+      setDateRange,
+      resetDateRange: () => setDateRange(defaultRange30Days()),
       setCrudOpen,
     };
-  }, [state, accessToken, load]);
+  }, [state, accessToken, load, dateRange]);
 
   const onSignOut = async () => {
     await signOut();
@@ -322,6 +341,7 @@ export function HomeShellScreen() {
           {activeMenu === "exchange" && <ExchangeRatesScreen />}
           {activeMenu === "notifications" && <NotificationsScreen />}
           {activeMenu === "profile" && <ProfileScreen />}
+          {activeMenu === "settings" && <SettingsScreen />}
 
           <View style={{ height: 24 }} />
         </ScrollView>
