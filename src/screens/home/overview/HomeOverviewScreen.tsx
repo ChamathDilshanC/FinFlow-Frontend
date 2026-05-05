@@ -49,7 +49,7 @@ export function HomeOverviewScreen() {
   const recentTransactions = useMemo(() => {
     return [...state.transactions]
       .sort((a, b) => new Date(strField(b.occurred_at)).getTime() - new Date(strField(a.occurred_at)).getTime())
-      .slice(0, 4);
+      .slice(0, 5);
   }, [state.transactions]);
 
   const recentSubscriptions = useMemo(() => {
@@ -58,7 +58,7 @@ export function HomeOverviewScreen() {
         (a, b) =>
           new Date(strField(a.next_renewal_date)).getTime() - new Date(strField(b.next_renewal_date)).getTime(),
       )
-      .slice(0, 4);
+      .slice(0, 5);
   }, [state.subscriptions]);
 
   const transactionTrend = useMemo(() => {
